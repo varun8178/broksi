@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Broski - AI Business Analyst Assistant</title>
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js CDN for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- ==========================================
+         SIDEBAR NAVIGATION
+         ========================================== -->
+    <aside class="sidebar">
+      <div>
+        <div class="brand-section">
+          <div class="brand-logo">
+            <!-- SVG Logo: Analyst Graph & AI Node -->
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span class="brand-name">Broski</span>
+        </div>
+
+        <nav class="nav-menu">
+          <li class="nav-item">
+            <a class="nav-link active" onclick="app.switchPanel('dashboard')" id="nav-dashboard">
+              <!-- Dashboard SVG -->
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="app.switchPanel('chat')" id="nav-chat">
+              <!-- Message SVG -->
+              <svg viewBox="0 0 24 24">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span>AI Chat Room</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="app.switchPanel('forecaster')" id="nav-forecaster">
+              <!-- Forecaster/Trend SVG -->
+              <svg viewBox="0 0 24 24">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+              </svg>
+              <span>Forecaster</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="app.switchPanel('swot')" id="nav-swot">
+              <!-- SWOT Matrix Grid SVG -->
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="2" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+              </svg>
+              <span>SWOT Matrix</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="app.switchPanel('kanban')" id="nav-kanban">
+              <!-- Kanban Board SVG -->
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <line x1="9" y1="3" x2="9" y2="21"/>
+                <line x1="15" y1="3" x2="15" y2="21"/>
+              </svg>
+              <span>Action Planner</span>
+            </a>
+          </li>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="theme-toggle-btn" onclick="app.toggleTheme()">
+          <!-- Sun SVG -->
+          <svg id="theme-sun-icon" viewBox="0 0 24 24" style="display: none;">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <!-- Moon SVG -->
+          <svg id="theme-moon-icon" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <span id="theme-text-label">Dark Theme</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ==========================================
+         MAIN DISPLAY CONTAINER
+         ========================================== -->
+    <main class="main-content">
+      
+      <!-- Top header / Context Banner -->
+      <header class="top-header">
+        <div class="header-title-section">
+          <h1 id="page-header-title">Executive Dashboard</h1>
+        </div>
+        <div class="header-actions">
+          <div class="template-selector-container">
+            <label for="templateSelector">Business Model:</label>
+            <select id="templateSelector" class="template-select" onchange="app.handleTemplateChange(this.value)">
+              <option value="saas">SaaS Platform (CloudScale)</option>
+              <option value="ecommerce">E-Commerce Store (LuxeDecor)</option>
+              <option value="retail">Local Cafe & Retail (UrbanBites)</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <!-- Panel Viewport -->
+      <div class="panel-viewport">
+
+        <!-- ==========================================
+             PANEL: Dashboard Overview
+             ========================================== -->
+        <section id="panel-dashboard" class="content-panel active">
+          
+          <!-- KPI Metrics Row -->
+          <div class="kpi-grid" id="dashboard-kpis">
+            <!-- Dynamic KPI card components loaded from mockData.js/state -->
+          </div>
+
+          <!-- Charts Row -->
+          <div class="dashboard-layout">
+            <div class="glass-card chart-card">
+              <div class="chart-header">
+                <div class="chart-title">
+                  <h3>Revenue & Growth Trends</h3>
+                  <p>Historical sales performance over the past 6 months</p>
+                </div>
+              </div>
+              <div class="chart-canvas-container">
+                <canvas id="revenueTrendChart"></canvas>
+              </div>
+            </div>
+
+            <div class="glass-card chart-card">
+              <div class="chart-header">
+                <div class="chart-title">
+                  <h3>Acquisition Share</h3>
+                  <p>Primary drivers of incoming customer volume</p>
+                </div>
+              </div>
+              <div class="chart-canvas-container">
+                <canvas id="channelShareChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Manual Metrics Customization Widget -->
+            <div class="glass-card metrics-tuning-section">
+              <div class="chart-header">
+                <div class="chart-title">
+                  <h3>Customize Business Metrics</h3>
+                  <p>Manually adjust values to simulate custom analytical dashboards</p>
+                </div>
+              </div>
+              <div class="override-metrics-grid" id="metrics-override-inputs">
+                <!-- Dynamically filled with inputs for the current business model -->
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: AI Chat Room
+             ========================================== -->
+        <section id="panel-chat" class="content-panel">
+          <div class="chat-layout">
+            
+            <!-- Persona Switcher Sidebar -->
+            <div class="persona-panel">
+              <h3>Expert Personas</h3>
+              <div class="persona-list">
+                <div class="persona-card active" onclick="app.selectPersona('Sarah')" id="persona-Sarah">
+                  <div class="persona-avatar">SF</div>
+                  <div class="persona-info">
+                    <span class="persona-name">Sarah Finance</span>
+                    <span class="persona-role">Financial Specialist</span>
+                  </div>
+                </div>
+                <div class="persona-card" onclick="app.selectPersona('Marcus')" id="persona-Marcus">
+                  <div class="persona-avatar">MM</div>
+                  <div class="persona-info">
+                    <span class="persona-name">Marcus Marketing</span>
+                    <span class="persona-role">Growth Strategist</span>
+                  </div>
+                </div>
+                <div class="persona-card" onclick="app.selectPersona('Elena')" id="persona-Elena">
+                  <div class="persona-avatar">EO</div>
+                  <div class="persona-info">
+                    <span class="persona-name">Elena Operations</span>
+                    <span class="persona-role">Process & Ops Lead</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chat Window -->
+            <div class="chat-window">
+              <div class="chat-header-bar">
+                <div class="persona-avatar" id="active-chat-avatar" style="width: 38px; height: 38px; font-size: 0.95rem;">SF</div>
+                <div class="active-persona-title">
+                  <h4 id="active-chat-name">Sarah Finance</h4>
+                  <span>Online Analyst</span>
+                </div>
+              </div>
+
+              <!-- Message Scroller -->
+              <div class="chat-messages-container" id="chat-messages-scroll">
+                <!-- Loaded dynamically -->
+              </div>
+
+              <!-- Suggested Prompts -->
+              <div class="chat-suggestions" id="chat-prompt-suggestions">
+                <!-- Dynamic Chips based on model -->
+              </div>
+
+              <!-- Message Input Bar -->
+              <div class="chat-input-bar">
+                <input type="text" class="chat-input-field" id="chat-input-box" placeholder="Ask your business analyst assistant anything..." onkeydown="if(event.key==='Enter') app.sendChatMessage()">
+                <button class="chat-send-btn" onclick="app.sendChatMessage()">
+                  <!-- Send SVG Icon -->
+                  <svg viewBox="0 0 24 24">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: Financial Forecaster
+             ========================================== -->
+        <section id="panel-forecaster" class="content-panel">
+          <div class="forecaster-layout">
+            
+            <div class="forecaster-controls">
+              <div class="glass-card">
+                <h3 style="margin-bottom: 20px;">Growth Forecast Drivers</h3>
+                
+                <div class="forecaster-sliders">
+                  <div class="slider-group">
+                    <div class="slider-header">
+                      <span class="slider-label">Starting Revenue (Monthly)</span>
+                      <span class="slider-value" id="forecast-start-rev-val">$10,000</span>
+                    </div>
+                    <input type="range" class="slider-input" id="forecast-start-rev" min="1000" max="250000" step="1000" value="45000" oninput="app.updateForecaster()">
+                  </div>
+
+                  <div class="slider-group">
+                    <div class="slider-header">
+                      <span class="slider-label">Monthly Growth Rate</span>
+                      <span class="slider-value" id="forecast-growth-rate-val">5.0%</span>
+                    </div>
+                    <input type="range" class="slider-input" id="forecast-growth-rate" min="0" max="50" step="0.5" value="8" oninput="app.updateForecaster()">
+                  </div>
+
+                  <div class="slider-group">
+                    <div class="slider-header">
+                      <span class="slider-label">Monthly Customer Churn</span>
+                      <span class="slider-value" id="forecast-churn-rate-val">2.0%</span>
+                    </div>
+                    <input type="range" class="slider-input" id="forecast-churn-rate" min="0" max="25" step="0.1" value="2.1" oninput="app.updateForecaster()">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Milestones Dashboard -->
+              <div class="glass-card">
+                <h3 style="margin-bottom: 16px;">12-Month Projections</h3>
+                <div class="milestone-cards">
+                  <div class="milestone-item">
+                    <span class="milestone-name">Month 12 Projected Sales</span>
+                    <span class="milestone-value" id="forecast-m12-sales">$0</span>
+                  </div>
+                  <div class="milestone-item">
+                    <span class="milestone-name">Annualized Run Rate (ARR)</span>
+                    <span class="milestone-value" id="forecast-arr">$0</span>
+                  </div>
+                  <div class="milestone-item">
+                    <span class="milestone-name">Estimated Net Profit (70% margin)</span>
+                    <span class="milestone-value" id="forecast-profit" style="color: var(--secondary);">$0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Projections Chart -->
+            <div class="glass-card forecaster-chart-card">
+              <div class="chart-header">
+                <div class="chart-title">
+                  <h3>Compounding Revenue Model</h3>
+                  <p>12-Month forward projection illustrating growth factoring churn</p>
+                </div>
+              </div>
+              <div class="chart-canvas-container" style="height: 380px;">
+                <canvas id="forecasterChart"></canvas>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: SWOT Matrix
+             ========================================== -->
+        <section id="panel-swot" class="content-panel">
+          <div class="swot-panel-header">
+            <div class="chart-title">
+              <h2>SWOT Analysis Matrix</h2>
+              <p>Assess Strengths, Weaknesses, Opportunities, and Threats to craft business strategies</p>
+            </div>
+            <button class="btn-secondary" onclick="app.resetSwotData()">Reset Matrix Templates</button>
+          </div>
+
+          <div class="swot-grid">
+            <!-- Strengths Quadrant -->
+            <div class="glass-card swot-quadrant strengths">
+              <div class="swot-quadrant-title">
+                <h3>
+                  <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  Strengths
+                </h3>
+              </div>
+              <div class="swot-list" id="swot-list-strengths">
+                <!-- Dynamically loaded -->
+              </div>
+              <form class="swot-input-form" onsubmit="event.preventDefault(); app.addSwotItem('strengths');">
+                <input type="text" class="swot-input-field" id="swot-input-strengths" placeholder="Add custom strength...">
+                <button type="submit" class="add-swot-btn">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </form>
+            </div>
+
+            <!-- Weaknesses Quadrant -->
+            <div class="glass-card swot-quadrant weaknesses">
+              <div class="swot-quadrant-title">
+                <h3>
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Weaknesses
+                </h3>
+              </div>
+              <div class="swot-list" id="swot-list-weaknesses">
+                <!-- Dynamically loaded -->
+              </div>
+              <form class="swot-input-form" onsubmit="event.preventDefault(); app.addSwotItem('weaknesses');">
+                <input type="text" class="swot-input-field" id="swot-input-weaknesses" placeholder="Add custom weakness...">
+                <button type="submit" class="add-swot-btn">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </form>
+            </div>
+
+            <!-- Opportunities Quadrant -->
+            <div class="glass-card swot-quadrant opportunities">
+              <div class="swot-quadrant-title">
+                <h3>
+                  <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                  Opportunities
+                </h3>
+              </div>
+              <div class="swot-list" id="swot-list-opportunities">
+                <!-- Dynamically loaded -->
+              </div>
+              <form class="swot-input-form" onsubmit="event.preventDefault(); app.addSwotItem('opportunities');">
+                <input type="text" class="swot-input-field" id="swot-input-opportunities" placeholder="Add custom opportunity...">
+                <button type="submit" class="add-swot-btn">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </form>
+            </div>
+
+            <!-- Threats Quadrant -->
+            <div class="glass-card swot-quadrant threats">
+              <div class="swot-quadrant-title">
+                <h3>
+                  <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  Threats
+                </h3>
+              </div>
+              <div class="swot-list" id="swot-list-threats">
+                <!-- Dynamically loaded -->
+              </div>
+              <form class="swot-input-form" onsubmit="event.preventDefault(); app.addSwotItem('threats');">
+                <input type="text" class="swot-input-field" id="swot-input-threats" placeholder="Add custom threat...">
+                <button type="submit" class="add-swot-btn">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             PANEL: Action Planner (Kanban)
+             ========================================== -->
+        <section id="panel-kanban" class="content-panel">
+          <div class="swot-panel-header">
+            <div class="chart-title">
+              <h2>Decision Action Planner</h2>
+              <p>Operationalize strategy by managing tasks from idea to completion</p>
+            </div>
+            <button class="btn-secondary" onclick="app.resetKanbanData()">Reset Board Tasks</button>
+          </div>
+
+          <div class="kanban-board">
+            
+            <!-- Column: TO DO -->
+            <div class="kanban-column" id="col-todo" ondragover="event.preventDefault();" ondrop="app.handleCardDrop(event, 'todo')">
+              <div class="column-header">
+                <div class="column-title-group">
+                  <h3 style="color: var(--primary);">To Do</h3>
+                  <span class="column-badge" id="badge-todo">0</span>
+                </div>
+              </div>
+              <div class="kanban-list" id="list-todo">
+                <!-- Loaded dynamically -->
+              </div>
+              <form class="quick-task-form" onsubmit="event.preventDefault(); app.addQuickTask('todo');">
+                <input type="text" class="quick-task-input" id="input-todo-title" placeholder="Task summary..." required>
+                <input type="text" class="quick-task-input" id="input-todo-desc" placeholder="Details/notes...">
+                <button type="submit" class="quick-task-btn">Add Task</button>
+              </form>
+            </div>
+
+            <!-- Column: IN PROGRESS -->
+            <div class="kanban-column" id="col-inprogress" ondragover="event.preventDefault();" ondrop="app.handleCardDrop(event, 'inprogress')">
+              <div class="column-header">
+                <div class="column-title-group">
+                  <h3 style="color: var(--secondary);">In Progress</h3>
+                  <span class="column-badge" id="badge-inprogress">0</span>
+                </div>
+              </div>
+              <div class="kanban-list" id="list-inprogress">
+                <!-- Loaded dynamically -->
+              </div>
+              <form class="quick-task-form" onsubmit="event.preventDefault(); app.addQuickTask('inprogress');">
+                <input type="text" class="quick-task-input" id="input-inprogress-title" placeholder="Task summary..." required>
+                <input type="text" class="quick-task-input" id="input-inprogress-desc" placeholder="Details/notes...">
+                <button type="submit" class="quick-task-btn">Add Task</button>
+              </form>
+            </div>
+
+            <!-- Column: COMPLETED -->
+            <div class="kanban-column" id="col-done" ondragover="event.preventDefault();" ondrop="app.handleCardDrop(event, 'done')">
+              <div class="column-header">
+                <div class="column-title-group">
+                  <h3 style="color: var(--success);">Completed</h3>
+                  <span class="column-badge" id="badge-done">0</span>
+                </div>
+              </div>
+              <div class="kanban-list" id="list-done">
+                <!-- Loaded dynamically -->
+              </div>
+              <form class="quick-task-form" onsubmit="event.preventDefault(); app.addQuickTask('done');">
+                <input type="text" class="quick-task-input" id="input-done-title" placeholder="Task summary..." required>
+                <input type="text" class="quick-task-input" id="input-done-desc" placeholder="Details/notes...">
+                <button type="submit" class="quick-task-btn">Add Task</button>
+              </form>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Script Modules -->
+  <script src="mockData.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
