@@ -11,10 +11,17 @@ class Broski {
     this.activePersona = 'Sarah';
     this.theme = 'dark';
 
-    // Business Data Cache (shallow copied from template default, can be modified by user)
+    // Active state caches (synchronized with customStates[activeTemplate])
     this.kpis = {};
     this.swot = {};
     this.kanban = [];
+
+    // Cache of customized values per template model
+    this.customStates = {
+      saas: { kpis: null, swot: null, kanban: null },
+      ecommerce: { kpis: null, swot: null, kanban: null },
+      retail: { kpis: null, swot: null, kanban: null }
+    };
 
     // Chat histories mapped by [template][persona] to preserve context
     this.chatHistories = {
@@ -31,12 +38,22 @@ class Broski {
 
   init() {
     // 1. Initial State Setup
+    const hasSavedState = this.loadState();
+    
     this.loadTemplateState(this.activeTemplate);
-    this.initializeChatGreetings();
+    
+    if (!hasSavedState) {
+      this.initializeChatGreetings();
+    }
 
     // 2. DOM Elements Bindings & Event Listeners
     this.initNavigation();
-    this.initTheme();
+    
+    // Sync UI elements to loaded state
+    document.getElementById('templateSelector').value = this.activeTemplate;
+    this.setTheme(this.theme);
+    this.switchPanel(this.activePanel);
+    this.selectPersona(this.activePersona);
 
     // 3. Chart.js Initialization
     this.initCharts();
@@ -46,17 +63,58 @@ class Broski {
   }
 
   // ==========================================
+  // LocalStorage Persistence Helpers
+  // ==========================================
+
+  saveState() {
+    const stateToSave = {
+      activePanel: this.activePanel,
+      activeTemplate: this.activeTemplate,
+      activePersona: this.activePersona,
+      theme: this.theme,
+      customStates: this.customStates,
+      chatHistories: this.chatHistories
+    };
+    localStorage.setItem('broski_app_state', JSON.stringify(stateToSave));
+  }
+
+  loadState() {
+    const saved = localStorage.getItem('broski_app_state');
+    if (!saved) return false;
+    try {
+      const state = JSON.parse(saved);
+      this.activePanel = state.activePanel || 'dashboard';
+      this.activeTemplate = state.activeTemplate || 'saas';
+      this.activePersona = state.activePersona || 'Sarah';
+      this.theme = state.theme || 'dark';
+      this.customStates = state.customStates || this.customStates;
+      this.chatHistories = state.chatHistories || this.chatHistories;
+      return true;
+    } catch (e) {
+      console.error("Failed to load state from localStorage:", e);
+      return false;
+    }
+  }
+
+  // ==========================================
   // State & Template Management
   // ==========================================
 
   loadTemplateState(templateKey) {
-    const defaultData = BUSINESS_TEMPLATES[templateKey];
     this.activeTemplate = templateKey;
     
-    // Create copies of the mock data to allow local customization in dashboard
-    this.kpis = JSON.parse(JSON.stringify(defaultData.kpis));
-    this.swot = JSON.parse(JSON.stringify(defaultData.swot));
-    this.kanban = JSON.parse(JSON.stringify(defaultData.kanban));
+    // Check if customStates has data for this template. If not, load from defaults
+    if (!this.customStates[templateKey].kpis) {
+      const defaultData = BUSINESS_TEMPLATES[templateKey];
+      this.customStates[templateKey].kpis = JSON.parse(JSON.stringify(defaultData.kpis));
+      this.customStates[templateKey].swot = JSON.parse(JSON.stringify(defaultData.swot));
+      this.customStates[templateKey].kanban = JSON.parse(JSON.stringify(defaultData.kanban));
+    }
+
+    // Set active caches to the customized state
+    this.kpis = this.customStates[templateKey].kpis;
+    this.swot = this.customStates[templateKey].swot;
+    this.kanban = this.customStates[templateKey].kanban;
 
     // Update Forecaster controls to match template defaults
     const startRevSlider = document.getElementById('forecast-start-rev');
@@ -83,6 +141,7 @@ class Broski {
 
   handleTemplateChange(value) {
     this.loadTemplateState(value);
+    this.saveState();
     this.renderAll();
     
     // If chat is open, force greeting refresh or state reload
@@ -114,6 +173,7 @@ class Broski {
     document.getElementById(`panel-${panelId}`).classList.add('active');
     document.getElementById(`nav-${panelId}`).classList.add('active');
     this.activePanel = panelId;
+    this.saveState();
 
     // 3. Update Title Header
     const headerTitles = {
@@ -157,6 +217,7 @@ class Broski {
   setTheme(themeName) {
     this.theme = themeName;
     document.documentElement.setAttribute('data-theme', themeName);
+    this.saveState();
 
     const label = document.getElementById('theme-text-label');
     const sunIcon = document.getElementById('theme-sun-icon');
@@ -241,6 +302,7 @@ class Broski {
     // Calculate simple trend text adjustments if needed, or keep same
     this.kpis[key].trend = "Custom Override";
     this.kpis[key].isPositive = true;
+    this.saveState();
 
     this.renderKPIs();
   }
@@ -377,6 +439,7 @@ class Broski {
 
   selectPersona(personaName) {
     this.activePersona = personaName;
+    this.saveState();
 
     // Highlight card
     document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'));
@@ -510,6 +573,7 @@ class Broski {
       text: text,
       timestamp: new Date()
     });
+    this.saveState();
     this.renderChatHistory();
     this.scrollChatToBottom();
 
@@ -551,6 +615,7 @@ class Broski {
         text: replyText,
         timestamp: new Date()
       });
+      this.saveState();
 
       this.renderChatHistory();
       this.scrollChatToBottom();
@@ -627,6 +692,7 @@ Would you like to log this as a strategic roadmap objective?
       status: 'todo',
       category: category
     });
+    this.saveState();
 
     // Notify user with simple custom feedback overlay (simulate premium toast notification)
     alert(`Success: "${title}" has been successfully logged into your Action Planner under "To Do"!`);
@@ -737,19 +803,23 @@ Would you like to log this as a strategic roadmap objective?
     if (!value) return;
 
     this.swot[quadrant].push(value);
+    this.saveState();
     inputField.value = '';
     this.renderSWOT();
   }
 
   deleteSwotItem(quadrant, index) {
     this.swot[quadrant].splice(index, 1);
+    this.saveState();
     this.renderSWOT();
   }
 
   resetSwotData() {
     const confirmReset = confirm("Are you sure you want to reset the SWOT analysis to the template defaults?");
     if (confirmReset) {
-      this.swot = JSON.parse(JSON.stringify(BUSINESS_TEMPLATES[this.activeTemplate].swot));
+      this.customStates[this.activeTemplate].swot = JSON.parse(JSON.stringify(BUSINESS_TEMPLATES[this.activeTemplate].swot));
+      this.swot = this.customStates[this.activeTemplate].swot;
+      this.saveState();
       this.renderSWOT();
     }
   }
@@ -833,6 +903,7 @@ Would you like to log this as a strategic roadmap objective?
     
     if (taskIndex !== -1) {
       this.kanban[taskIndex].status = statusColumn;
+      this.saveState();
       this.renderKanban();
     }
   }
@@ -853,11 +924,14 @@ Would you like to log this as a strategic roadmap objective?
     }
 
     this.kanban[taskIndex].status = nextStatus;
+    this.saveState();
     this.renderKanban();
   }
 
   deleteCard(cardId) {
     this.kanban = this.kanban.filter(t => t.id !== cardId);
+    this.customStates[this.activeTemplate].kanban = this.kanban;
+    this.saveState();
     this.renderKanban();
   }
 
@@ -878,6 +952,7 @@ Would you like to log this as a strategic roadmap objective?
       status: statusColumn,
       category: "Ad-hoc"
     });
+    this.saveState();
 
     titleInput.value = '';
     descInput.value = '';
@@ -887,7 +962,9 @@ Would you like to log this as a strategic roadmap objective?
   resetKanbanData() {
     const confirmReset = confirm("Are you sure you want to reset all tasks back to the template defaults?");
     if (confirmReset) {
-      this.kanban = JSON.parse(JSON.stringify(BUSINESS_TEMPLATES[this.activeTemplate].kanban));
+      this.customStates[this.activeTemplate].kanban = JSON.parse(JSON.stringify(BUSINESS_TEMPLATES[this.activeTemplate].kanban));
+      this.kanban = this.customStates[this.activeTemplate].kanban;
+      this.saveState();
       this.renderKanban();
     }
   }
